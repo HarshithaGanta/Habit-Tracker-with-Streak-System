@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Habit Tracker</title>
+<style>
+:root {
+    --bg: #09111f;
+    --bg-soft: #101a30;
+    --panel: rgba(14, 23, 43, 0.86);
+    --panel-border: rgba(148, 163, 184, 0.14);
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #22c55e;
+    --accent-strong: #16a34a;
+    --warning: #f97316;
+    --danger: #ef4444;
+    --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.15), transparent 30%),
+        radial-gradient(circle at top right, rgba(249, 115, 22, 0.15), transparent 28%),
+        linear-gradient(160deg, #07101d 0%, #0b1324 42%, #111c35 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.page {
+    width: min(980px, 100%);
+}
+
+.shell {
+    background: var(--panel);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--panel-border);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.hero {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 24px;
+    padding: 28px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.hero h1,
+.section-title {
+    margin: 0;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.12);
+    color: #bbf7d0;
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+}
+
+.hero p,
+.muted {
+    color: var(--muted);
+}
+
+.highlight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 22px;
+}
+
+.mini-card,
+.stat-card,
+.habit-card,
+.login-card,
+.form-card {
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background: rgba(15, 23, 42, 0.78);
+    border-radius: 20px;
+}
+
+.mini-card {
+    padding: 16px;
+}
+
+.mini-card strong,
+.stat-card strong {
+    display: block;
+    font-size: 1.35rem;
+    margin-top: 6px;
+}
+
+.hero-side {
+    display: flex;
+    align-items: stretch;
+}
+
+.login-card {
+    width: 100%;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+}
+
+.content {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    padding: 28px;
+}
+
+.left-column,
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-card,
+.stats-panel {
+    padding: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.stat-card {
+    padding: 16px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.92rem;
+    color: #cbd5e1;
+    text-align: left;
+}
+
+input,
+select,
+button {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 0.98rem;
+}
+
+input,
+select {
+    background: rgba(30, 41, 59, 0.95);
+    color: white;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    outline: none;
+}
+
+input:focus,
+select:focus {
+    border-color: rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+}
+
+button {
+    cursor: pointer;
+    color: white;
+    font-weight: 600;
+    transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    opacity: 0.96;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+}
+
+.btn-secondary {
+    background: rgba(148, 163, 184, 0.14);
+}
+
+.btn-danger {
+    background: rgba(239, 68, 68, 0.18);
+    color: #fecaca;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.spacer-top {
+    margin-top: 14px;
+}
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.user-badge {
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.12);
+    color: #bbf7d0;
+    font-size: 0.92rem;
+}
+
+.habit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.habit-card {
+    padding: 18px;
+}
+
+.habit-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.habit-title {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.habit-meta {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.status-pill {
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    white-space: nowrap;
+}
+
+.status-done {
+    background: rgba(34, 197, 94, 0.16);
+    color: #bbf7d0;
+}
+
+.status-pending {
+    background: rgba(249, 115, 22, 0.14);
+    color: #fdba74;
+}
+
+.progress-shell {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.12);
+    overflow: hidden;
+    margin: 16px 0 10px;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #84cc16);
+    border-radius: inherit;
+}
+
+.habit-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.empty-state {
+    padding: 36px 18px;
+    text-align: center;
+    border: 1px dashed rgba(148, 163, 184, 0.2);
+    border-radius: 20px;
+    color: var(--muted);
+}
+
+.summary-box {
+    margin-top: 18px;
+    padding: 16px;
+    background: rgba(15, 23, 42, 0.74);
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    color: var(--muted);
+}
+
+.footer-note {
+    margin-top: 16px;
+    font-size: 0.88rem;
+    color: var(--muted);
+}
+
+@media (max-width: 860px) {
+    .hero,
+    .content {
+        grid-template-columns: 1fr;
+    }
+
+    .habit-actions,
+    .row,
+    .stats-grid,
+    .highlight-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+<body>
+<div class="page">
+    <div class="shell">
+        <section class="hero">
+            <div>
+                <span class="tag">Daily Focus Dashboard</span>
+                <h1 style="font-size: 2.4rem; margin-top: 14px;">Build better routines, one day at a time.</h1>
+                <p style="font-size: 1rem; line-height: 1.7; max-width: 620px;">
+                    Track your habits, measure your consistency, and stay motivated with a simple streak system.
+                    Your progress is saved in your browser, so you can come back anytime and continue where you left off.
+                </p>
+                <div class="highlight-grid">
+                    <div class="mini-card">
+                        <span class="muted">Smart Summary</span>
+                        <strong id="heroCompletion">0% Complete</strong>
+                    </div>
+                    <div class="mini-card">
+                        <span class="muted">Best Current Focus</span>
+                        <strong id="heroFocus">Start your first habit</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-side">
+                <div class="login-card" id="auth">
+                    <div>
+                        <h2 style="margin: 0 0 8px;">Login / Signup</h2>
+                        <p class="muted" style="margin: 0;">Use a username to keep your personal habit list on this device.</p>
+                    </div>
+                    <div>
+                        <label for="username">Username</label>
+                        <input type="text" id="username" placeholder="Enter username">
+                    </div>
+                    <button class="btn-primary" onclick="login()">Continue</button>
+                    <p class="footer-note">Tip: You can use different usernames to store different habit plans.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="content" id="app" style="display:none;">
+            <div class="left-column">
+                <div class="form-card">
+                    <div class="app-header">
+                        <div>
+                            <h2 class="section-title">Habit Planner</h2>
+                            <p class="muted" style="margin: 6px 0 0;">Add habits with a category and target frequency.</p>
+                        </div>
+                        <div class="user-badge" id="welcomeUser">User</div>
+                    </div>
+
+                    <div class="spacer-top">
+                        <label for="habitInput">Habit name</label>
+                        <input type="text" id="habitInput" placeholder="Example: Drink 2L of water">
+                    </div>
+
+                    <div class="row spacer-top">
+                        <div>
+                            <label for="categoryInput">Category</label>
+                            <select id="categoryInput">
+                                <option value="Health">Health</option>
+                                <option value="Study">Study</option>
+                                <option value="Fitness">Fitness</option>
+                                <option value="Work">Work</option>
+                                <option value="Mindfulness">Mindfulness</option>
+                                <option value="Personal">Personal</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="frequencyInput">Target</label>
+                            <select id="frequencyInput">
+                                <option value="Daily">Daily</option>
+                                <option value="5 days/week">5 days/week</option>
+                                <option value="3 days/week">3 days/week</option>
+                                <option value="Weekend">Weekend</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary spacer-top" onclick="addHabit()">Add Habit</button>
+                    <button class="btn-secondary spacer-top" onclick="markAllDone()">Mark All as Done</button>
+                    <button class="btn-danger spacer-top" onclick="logout()">Logout</button>
+                </div>
+
+                <div class="stats-panel form-card">
+                    <h3 class="section-title">Progress Overview</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="muted">Total Habits</span>
+                            <strong id="totalHabits">0</strong>
+                        </div>
+                        <div class="stat-card">
+                            <span class="muted">Completed Today</span>
+                            <strong id="completedHabits">0</strong>
+                        </div>
+                        <div class="stat-card">
+                            <span class="muted">Current Streak</span>
+                            <strong id="streak">0</strong>
+                        </div>
+                        <div class="stat-card">
+                            <span class="muted">Completion Rate</span>
+                            <strong id="completionRate">0%</strong>
+                        </div>
+                    </div>
+                    <div class="summary-box" id="summaryText">
+                        Add a habit to start building your routine.
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div>
+                    <div class="app-header">
+                        <div>
+                            <h2 class="section-title">Today's Habits</h2>
+                            <p class="muted" style="margin: 6px 0 0;">Click complete to update your streak and progress.</p>
+                        </div>
+                        <div class="user-badge" id="todayDate"></div>
+                    </div>
+                    <div class="habit-list" id="habitList"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+let currentUser = "";
+
+function getStorageKey(username) {
+    return "habit-tracker:" + username;
+}
+
+function getTodayLabel() {
+    return new Date().toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+    });
+}
+
+function login() {
+    const username = document.getElementById("username").value.trim();
+    if (!username) {
+        alert("Please enter a username.");
+        return;
+    }
+
+    currentUser = username;
+    localStorage.setItem("habit-tracker-user", username);
+
+    document.getElementById("auth").style.display = "none";
+    document.getElementById("app").style.display = "grid";
+    document.getElementById("welcomeUser").innerText = "Hi, " + username;
+    document.getElementById("todayDate").innerText = getTodayLabel();
+
+    loadHabits();
+}
+
+function logout() {
+    localStorage.removeItem("habit-tracker-user");
+    location.reload();
+}
+
+function addHabit() {
+    const habitName = document.getElementById("habitInput").value.trim();
+    const category = document.getElementById("categoryInput").value;
+    const frequency = document.getElementById("frequencyInput").value;
+
+    if (!habitName) {
+        alert("Please enter a habit name.");
+        return;
+    }
+
+    const habits = JSON.parse(localStorage.getItem(getStorageKey(currentUser))) || [];
+    habits.push({
+        name: habitName,
+        category: category,
+        frequency: frequency,
+        done: false,
+        createdAt: new Date().toLocaleString("en-IN"),
+        progress: 0
+    });
+
+    localStorage.setItem(getStorageKey(currentUser), JSON.stringify(habits));
+    document.getElementById("habitInput").value = "";
+    document.getElementById("categoryInput").value = "Health";
+    document.getElementById("frequencyInput").value = "Daily";
+    loadHabits();
+}
+
+function toggleHabit(index) {
+    const habits = JSON.parse(localStorage.getItem(getStorageKey(currentUser))) || [];
+    habits[index].done = !habits[index].done;
+    habits[index].progress = habits[index].done ? 100 : 0;
+    localStorage.setItem(getStorageKey(currentUser), JSON.stringify(habits));
+    loadHabits();
+}
+
+function deleteHabit(index) {
+    const habits = JSON.parse(localStorage.getItem(getStorageKey(currentUser))) || [];
+    habits.splice(index, 1);
+    localStorage.setItem(getStorageKey(currentUser), JSON.stringify(habits));
+    loadHabits();
+}
+
+function markAllDone() {
+    const habits = JSON.parse(localStorage.getItem(getStorageKey(currentUser))) || [];
+    if (!habits.length) {
+        alert("There are no habits to update.");
+        return;
+    }
+
+    habits.forEach((habit) => {
+        habit.done = true;
+        habit.progress = 100;
+    });
+
+    localStorage.setItem(getStorageKey(currentUser), JSON.stringify(habits));
+    loadHabits();
+}
+
+function loadHabits() {
+    const habits = JSON.parse(localStorage.getItem(getStorageKey(currentUser))) || [];
+    const list = document.getElementById("habitList");
+    list.innerHTML = "";
+
+    const completed = habits.filter((habit) => habit.done).length;
+    const total = habits.length;
+    const completionRate = total ? Math.round((completed / total) * 100) : 0;
+    const focusHabit = habits.find((habit) => !habit.done);
+
+    document.getElementById("totalHabits").innerText = total;
+    document.getElementById("completedHabits").innerText = completed;
+    document.getElementById("streak").innerText = completed;
+    document.getElementById("completionRate").innerText = completionRate + "%";
+    document.getElementById("heroCompletion").innerText = completionRate + "% Complete";
+    document.getElementById("heroFocus").innerText = focusHabit ? focusHabit.name : "All habits completed";
+
+    if (!total) {
+        list.innerHTML = '<div class="empty-state">No habits added yet. Add your first habit to begin your routine.</div>';
+        document.getElementById("summaryText").innerText = "Add a habit to start building your routine.";
+        return;
+    }
+
+    habits.forEach((habit, index) => {
+        const card = document.createElement("div");
+        card.className = "habit-card";
+        card.innerHTML = `
+            <div class="habit-top">
+                <div>
+                    <h3 class="habit-title">${habit.name}</h3>
+                    <div class="habit-meta">${habit.category} • ${habit.frequency}</div>
+                    <div class="habit-meta">Created: ${habit.createdAt}</div>
+                </div>
+                <div class="status-pill ${habit.done ? "status-done" : "status-pending"}">
+                    ${habit.done ? "Completed" : "Pending"}
+                </div>
+            </div>
+            <div class="progress-shell">
+                <div class="progress-bar" style="width: ${habit.progress || 0}%"></div>
+            </div>
+            <div class="habit-meta">Progress: ${habit.progress || 0}%</div>
+            <div class="habit-actions">
+                <button class="btn-primary" onclick="toggleHabit(${index})">
+                    ${habit.done ? "Undo" : "Complete"}
+                </button>
+                <button class="btn-secondary" onclick="editHabit(${index})">Edit</button>
+                <button class="btn-danger" onclick="deleteHabit(${index})">Delete</button>
+            </div>
+        `;
+        list.appendChild(card);
+    });
+
+    document.getElementById("summaryText").innerText =
+        completed === total
+            ? "Excellent work. You completed every habit scheduled for today."
+            : "You have completed " + completed + " of " + total + " habits today. Keep the streak alive.";
+}
+
+function editHabit(index) {
+    const habits = JSON.parse(localStorage.getItem(getStorageKey(currentUser))) || [];
+    const updatedName = prompt("Edit habit name:", habits[index].name);
+
+    if (updatedName === null) {
+        return;
+    }
+
+    const cleanedName = updatedName.trim();
+    if (!cleanedName) {
+        alert("Habit name cannot be empty.");
+        return;
+    }
+
+    habits[index].name = cleanedName;
+    localStorage.setItem(getStorageKey(currentUser), JSON.stringify(habits));
+    loadHabits();
+}
+
+window.onload = () => {
+    document.getElementById("todayDate").innerText = getTodayLabel();
+    const savedUser = localStorage.getItem("habit-tracker-user");
+
+    if (savedUser) {
+        currentUser = savedUser;
+        document.getElementById("auth").style.display = "none";
+        document.getElementById("app").style.display = "grid";
+        document.getElementById("welcomeUser").innerText = "Hi, " + savedUser;
+        loadHabits();
+    }
+};
+</script>
+</body>
+</html>
