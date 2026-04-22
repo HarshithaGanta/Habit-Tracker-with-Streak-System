@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker Dashboard</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div class="page">
+        <div class="shell">
+            <section class="hero">
+                <div>
+                    <span class="tag">Daily Focus Dashboard</span>
+                    <h1 style="font-size: 2.4rem; margin-top: 14px;">Build better routines, one day at a time.</h1>
+                    <p style="font-size: 1rem; line-height: 1.7; max-width: 620px;">
+                        Track your habits, measure consistency, and keep your progress synced through a backend-powered
+                        personal account.
+                    </p>
+                    <div class="highlight-grid">
+                        <div class="mini-card">
+                            <span class="muted">Smart Summary</span>
+                            <strong id="heroCompletion">0% Complete</strong>
+                        </div>
+                        <div class="mini-card">
+                            <span class="muted">Best Current Focus</span>
+                            <strong id="heroFocus">Start your first habit</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-side">
+                    <div class="auth-card">
+                        <div>
+                            <h2 style="margin: 0 0 8px;">Account</h2>
+                            <p class="muted" style="margin: 0;">Your habits are linked to your authenticated session.</p>
+                        </div>
+                        <div class="summary-box">
+                            <div class="muted">Signed in as</div>
+                            <strong id="accountUsername" style="display: block; margin-top: 8px;">Loading...</strong>
+                        </div>
+                        <div class="summary-box">
+                            <div class="muted">Backend stack</div>
+                            <strong style="display: block; margin-top: 8px;">Express, SQLite, Sessions</strong>
+                        </div>
+                        <button class="btn-danger spacer-top" id="logoutButton" type="button">Logout</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content">
+                <div class="left-column">
+                    <div class="form-card">
+                        <div class="app-header">
+                            <div>
+                                <h2 class="section-title">Habit Planner</h2>
+                                <p class="muted" style="margin: 6px 0 0;">Add habits with a category and target frequency.</p>
+                            </div>
+                            <div class="user-badge" id="welcomeUser">User</div>
+                        </div>
+
+                        <form id="habitForm">
+                            <div class="spacer-top">
+                                <label for="habitInput">Habit name</label>
+                                <input type="text" id="habitInput" placeholder="Example: Drink 2L of water" required>
+                            </div>
+
+                            <div class="row spacer-top">
+                                <div>
+                                    <label for="categoryInput">Category</label>
+                                    <select id="categoryInput">
+                                        <option value="Health">Health</option>
+                                        <option value="Study">Study</option>
+                                        <option value="Fitness">Fitness</option>
+                                        <option value="Work">Work</option>
+                                        <option value="Mindfulness">Mindfulness</option>
+                                        <option value="Personal">Personal</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="frequencyInput">Target</label>
+                                    <select id="frequencyInput">
+                                        <option value="Daily">Daily</option>
+                                        <option value="5 days/week">5 days/week</option>
+                                        <option value="3 days/week">3 days/week</option>
+                                        <option value="Weekend">Weekend</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button class="btn-primary spacer-top" type="submit">Add Habit</button>
+                        </form>
+                        <button class="btn-secondary spacer-top" id="markAllDoneButton" type="button">Mark All as Done</button>
+                        <div class="flash-message hidden" id="dashboardMessage"></div>
+                    </div>
+
+                    <div class="stats-panel form-card">
+                        <h3 class="section-title">Progress Overview</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <span class="muted">Total Habits</span>
+                                <strong id="totalHabits">0</strong>
+                            </div>
+                            <div class="stat-card">
+                                <span class="muted">Completed Today</span>
+                                <strong id="completedHabits">0</strong>
+                            </div>
+                            <div class="stat-card">
+                                <span class="muted">Current Streak</span>
+                                <strong id="streak">0</strong>
+                            </div>
+                            <div class="stat-card">
+                                <span class="muted">Completion Rate</span>
+                                <strong id="completionRate">0%</strong>
+                            </div>
+                        </div>
+                        <div class="summary-box" id="summaryText">
+                            Add a habit to start building your routine.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div>
+                        <div class="app-header">
+                            <div>
+                                <h2 class="section-title">Today's Habits</h2>
+                                <p class="muted" style="margin: 6px 0 0;">Click complete to update your streak and progress.</p>
+                            </div>
+                            <div class="user-badge" id="todayDate"></div>
+                        </div>
+                        <div class="habit-list" id="habitList"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="/assets/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+node_modules/
+data/
+server.out.log
+server.err.log
+remote-check/
+.env
+npm-debug.log*
