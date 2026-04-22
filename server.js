@@ -8,8 +8,13 @@ const SQLiteStoreFactory = require("connect-sqlite3");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === "production";
+const sessionSecret =
+    process.env.SESSION_SECRET || "replace-this-with-an-env-secret-in-production";
 
-const dataDir = path.join(__dirname, "data");
+const dataDir = process.env.DATA_DIR
+    ? path.resolve(process.env.DATA_DIR)
+    : path.join(__dirname, "data");
 if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
 }
@@ -25,15 +30,21 @@ app.use(
             db: "sessions.db",
             dir: dataDir
         }),
-        secret: "replace-this-with-an-env-secret-in-production",
+        secret: sessionSecret,
         resave: false,
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            maxAge: 1000 * 60 * 60 * 24 * 7
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+            sameSite: "lax",
+            secure: isProduction
         }
     })
 );
+
+if (isProduction) {
+    app.set("trust proxy", 1);
+}
 app.use("/assets", express.static(path.join(__dirname, "public")));
 
 db.serialize(() => {
