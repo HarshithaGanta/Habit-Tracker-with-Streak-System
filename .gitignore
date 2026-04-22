@@ -3,4 +3,6 @@ node_modules
 dist
 coverage
 npm-debug.log*
-
+__pycache__
+*.pyc
+server/data/*.db

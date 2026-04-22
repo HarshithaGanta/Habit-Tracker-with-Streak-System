@@ -1,13 +1,11 @@
 services:
   - type: web
     name: habit-tracker-api
-    runtime: node
+    runtime: python
     rootDir: server
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: MONGODB_URI
-        sync: false
       - key: JWT_SECRET
         sync: false
       - key: CLIENT_URL

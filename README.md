@@ -1,13 +1,13 @@
 # Habit Tracker With Streak System
 
-A full-stack habit tracker built with React, Node.js, Express, MongoDB, and JWT authentication. Users can sign up, log in, add daily habits, mark them complete for the day, and track streaks through a polished dashboard.
+A full-stack habit tracker built with React, FastAPI, SQLite, and JWT authentication. Users can sign up, log in, add daily habits, mark them complete for the day, and track streaks through a polished dashboard.
 
 ## Tech Stack
 
 - Frontend: React + Vite
-- Backend: Node.js + Express
-- Database: MongoDB Atlas with Mongoose
-- Authentication: JWT + bcryptjs
+- Backend: FastAPI
+- Database: SQLite stored on the backend
+- Authentication: JWT + bcrypt password hashing
 - Styling: Custom responsive CSS
 
 ## Features
@@ -27,6 +27,9 @@ A full-stack habit tracker built with React, Node.js, Express, MongoDB, and JWT 
 Habit-Tracker-with-Streak-System/
 ├── client/
 ├── server/
+│   ├── app/
+│   ├── data/
+│   └── requirements.txt
 ├── package.json
 └── README.md
 ```
@@ -38,6 +41,7 @@ Habit-Tracker-with-Streak-System/
 ```bash
 npm install
 npm run install-all
+pip install -r server/requirements.txt
 ```
 
 ### 2. Configure environment variables
@@ -46,7 +50,6 @@ Create `server/.env` from `server/.env.example`.
 
 ```env
 PORT=5000
-MONGODB_URI=your_mongodb_atlas_connection_string
 JWT_SECRET=replace_with_a_secure_secret
 CLIENT_URL=http://localhost:5173
 APP_TIMEZONE=Asia/Kolkata
@@ -66,6 +69,7 @@ npm run dev
 
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:5000`
+- SQLite database file: `server/data/habit_tracker.db`
 
 ## API Endpoints
 
@@ -99,15 +103,15 @@ Deploy `client/` to Vercel or Netlify.
 
 Deploy `server/` to Render or Railway.
 
-- Start command: `npm start`
+- Build command: `pip install -r requirements.txt`
+- Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 
 ### Database
 
-Use MongoDB Atlas and add the Atlas connection string to the backend environment variables.
+The app uses SQLite, so habit and user data are stored directly by the FastAPI backend in `server/data/habit_tracker.db`.
 
 ## Live Links
 
 - Frontend: Add your Vercel or Netlify link here
 - Backend: Add your Render or Railway link here
 - Repository: [Habit-Tracker-with-Streak-System](https://github.com/HarshithaGanta/Habit-Tracker-with-Streak-System)
-
