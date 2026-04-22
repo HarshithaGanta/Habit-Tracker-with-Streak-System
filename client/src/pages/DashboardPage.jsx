@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [pageLoading, setPageLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [workingHabitId, setWorkingHabitId] = useState("");
+  const [editingHabitId, setEditingHabitId] = useState("");
   const [error, setError] = useState("");
 
   const loadDashboard = async () => {
@@ -69,14 +70,21 @@ export default function DashboardPage() {
     setSubmitting(true);
 
     try {
-      await api.post("/habits", {
+      const payload = {
         title: formData.title,
         description: formData.description,
         category: formData.category,
         color: formData.color,
-      });
+      };
+
+      if (editingHabitId) {
+        await api.put(`/habits/${editingHabitId}`, payload);
+      } else {
+        await api.post("/habits", payload);
+      }
 
       setFormData(habitFormState);
+      setEditingHabitId("");
       await loadDashboard();
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Unable to create habit.");
@@ -111,6 +119,24 @@ export default function DashboardPage() {
     } finally {
       setWorkingHabitId("");
     }
+  };
+
+  const handleEditHabit = (habit) => {
+    setEditingHabitId(habit._id);
+    setFormData({
+      title: habit.title,
+      description: habit.description || "",
+      category: habit.category || "Personal",
+      color: habit.color || "#ff7b54",
+    });
+    setError("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingHabitId("");
+    setFormData(habitFormState);
+    setError("");
   };
 
   const completedHabits = habits.filter((habit) => habit.completedToday).length;
@@ -181,7 +207,7 @@ export default function DashboardPage() {
             <div className="panel-head">
               <div>
                 <span className="mini-label">Create habit</span>
-                <h2>Add a new daily habit</h2>
+                <h2>{editingHabitId ? "Update your habit" : "Add a new daily habit"}</h2>
               </div>
             </div>
 
@@ -232,8 +258,24 @@ export default function DashboardPage() {
               </div>
 
               <button type="submit" className="primary-button wide-button" disabled={submitting}>
-                {submitting ? "Adding habit..." : "Add Habit"}
+                {submitting
+                  ? editingHabitId
+                    ? "Saving changes..."
+                    : "Adding habit..."
+                  : editingHabitId
+                    ? "Save Habit"
+                    : "Add Habit"}
               </button>
+
+              {editingHabitId ? (
+                <button
+                  type="button"
+                  className="ghost-button wide-button"
+                  onClick={handleCancelEdit}
+                >
+                  Cancel Edit
+                </button>
+              ) : null}
             </form>
           </article>
 
@@ -252,6 +294,7 @@ export default function DashboardPage() {
                     key={habit._id}
                     habit={habit}
                     onToggle={handleToggleHabit}
+                    onEdit={handleEditHabit}
                     onDelete={handleDeleteHabit}
                     isWorking={workingHabitId === habit._id}
                   />
@@ -311,4 +354,3 @@ export default function DashboardPage() {
     </main>
   );
 }
-

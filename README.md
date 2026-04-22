@@ -1,21 +1,22 @@
 # Habit Tracker With Streak System
 
-A full-stack habit tracker built with React, FastAPI, SQLite, and JWT authentication. Users can sign up, log in, add daily habits, mark them complete for the day, and track streaks through a polished dashboard.
+A full-stack habit tracker built with React, FastAPI, SQLite, and JWT authentication. Users can create accounts, log in securely, store habits in a real database, mark daily completions, edit or delete habits, and view streak-based progress on a protected dashboard.
 
 ## Tech Stack
 
 - Frontend: React + Vite
 - Backend: FastAPI
 - Database: SQLite stored on the backend
-- Authentication: JWT + bcrypt password hashing
+- Authentication: JWT + hashed passwords
 - Styling: Custom responsive CSS
 
 ## Features
 
 - Secure signup and login
-- Password hashing with bcryptjs
+- Password hashing on the backend
 - JWT-based protected routes
 - Add daily habits with optional category and color accent
+- Edit and delete existing habits
 - Mark habits complete for today
 - Streak system with active streak and longest streak
 - Progress dashboard with completion rate and daily insights
@@ -51,11 +52,12 @@ Create `server/.env` from `server/.env.example`.
 ```env
 PORT=5000
 JWT_SECRET=replace_with_a_secure_secret
-CLIENT_URL=http://localhost:5173
+CLIENT_URL=http://localhost:5173,http://127.0.0.1:5173
 APP_TIMEZONE=Asia/Kolkata
+DATABASE_PATH=server/data/habit_tracker.db
 ```
 
-Create `client/.env` if you want a custom backend URL.
+Create `client/.env` from `client/.env.example` if you want a custom backend URL.
 
 ```env
 VITE_API_URL=http://localhost:5000/api
@@ -87,6 +89,7 @@ npm run dev
 - `GET /api/habits` protected
 - `GET /api/habits/dashboard` protected
 - `POST /api/habits` protected
+- `PUT /api/habits/:id` protected
 - `PATCH /api/habits/:id/toggle` protected
 - `DELETE /api/habits/:id` protected
 
@@ -105,13 +108,17 @@ Deploy `server/` to Render or Railway.
 
 - Build command: `pip install -r requirements.txt`
 - Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- If you deploy on Render with SQLite, use a persistent disk and set `DATABASE_PATH=/var/data/habit_tracker.db`
 
 ### Database
 
-The app uses SQLite, so habit and user data are stored directly by the FastAPI backend in `server/data/habit_tracker.db`.
+The app uses SQLite, so user accounts, habits, and completion history are stored directly by the FastAPI backend. For local development the default file is `server/data/habit_tracker.db`. In production, set `DATABASE_PATH` to a persistent location.
 
-## Live Links
+## GitHub Publishing
 
-- Frontend: Add your Vercel or Netlify link here
-- Backend: Add your Render or Railway link here
-- Repository: [Habit-Tracker-with-Streak-System](https://github.com/HarshithaGanta/Habit-Tracker-with-Streak-System)
+1. Create a new GitHub repository for this project.
+2. Initialize or connect git inside `Habit-Tracker-with-Streak-System/`.
+3. Commit the project files.
+4. Push the branch to your new GitHub repository.
+
+This project should live in its own repository because it is unrelated to the waste-segregation repo currently configured in the parent folder.

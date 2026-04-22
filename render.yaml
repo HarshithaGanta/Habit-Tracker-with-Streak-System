@@ -5,6 +5,10 @@ services:
     rootDir: server
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    disk:
+      name: habit-tracker-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: JWT_SECRET
         sync: false
@@ -12,3 +16,5 @@ services:
         sync: false
       - key: APP_TIMEZONE
         value: Asia/Kolkata
+      - key: DATABASE_PATH
+        value: /var/data/habit_tracker.db

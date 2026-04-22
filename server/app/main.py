@@ -6,33 +6,39 @@ from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr, Field
-from zoneinfo import ZoneInfo
+from fastapi.exceptions import RequestValidationError
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-DATABASE_PATH = DATA_DIR / "habit_tracker.db"
+DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(DATA_DIR / "habit_tracker.db"))).expanduser()
+DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 JWT_SECRET = os.getenv("JWT_SECRET", "replace_this_secret")
 JWT_ALGORITHM = "HS256"
 TOKEN_EXPIRE_DAYS = 7
 APP_TIMEZONE = os.getenv("APP_TIMEZONE", "Asia/Kolkata")
-CLIENT_URL = os.getenv("CLIENT_URL", "http://localhost:5173")
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+CLIENT_URLS = [
+    origin.strip()
+    for origin in os.getenv("CLIENT_URL", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+    if origin.strip()
+]
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 app = FastAPI(title="Habit Tracker API")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[CLIENT_URL, "http://127.0.0.1:5173"],
-    allow_credentials=True,
+    allow_origins=CLIENT_URLS or ["http://localhost:5173"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -54,8 +60,31 @@ class HabitPayload(BaseModel):
     color: str = Field(default="#ff7b54", max_length=20)
 
 
+@app.exception_handler(HTTPException)
+async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.detail},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    first_error = exc.errors()[0] if exc.errors() else {}
+    message = first_error.get("msg", "Invalid request.")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"message": message},
+    )
+
+
 def get_now() -> datetime:
-    return datetime.now(ZoneInfo(APP_TIMEZONE))
+    for zone_name in (APP_TIMEZONE, "Asia/Calcutta", "UTC"):
+        try:
+            return datetime.now(ZoneInfo(zone_name))
+        except ZoneInfoNotFoundError:
+            continue
+    return datetime.utcnow()
 
 
 def get_today_string() -> str:
@@ -83,6 +112,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_db():
     connection = sqlite3.connect(DATABASE_PATH)
     connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA foreign_keys = ON")
     try:
         yield connection
         connection.commit()
@@ -216,12 +246,21 @@ def calculate_streak_metrics(completed_dates: list[str]) -> dict:
         else:
             current_streak = 1
 
-    active_streak = 1
-    for index in range(len(completed_dates) - 1, 0, -1):
-        current_date = datetime.fromisoformat(completed_dates[index]).date()
-        previous_date = datetime.fromisoformat(completed_dates[index - 1]).date()
+    parsed_dates = [datetime.fromisoformat(value).date() for value in completed_dates]
+    last_completed_date = parsed_dates[-1]
+    today = get_now().date()
+    yesterday = today - timedelta(days=1)
+
+    active_streak = 0
+    if last_completed_date in {today, yesterday}:
+        active_streak = 1
+
+    for index in range(len(parsed_dates) - 1, 0, -1):
+        current_date = parsed_dates[index]
+        previous_date = parsed_dates[index - 1]
         if current_date - previous_date == timedelta(days=1):
-            active_streak += 1
+            if active_streak:
+                active_streak += 1
         else:
             break
 
@@ -251,6 +290,21 @@ def build_habit_response(connection: sqlite3.Connection, habit: sqlite3.Row) -> 
         "completedToday": today in completed_dates,
         "createdAt": habit["created_at"],
     }
+
+
+def get_habit_for_user(
+    connection: sqlite3.Connection,
+    habit_id: int,
+    user_id: int,
+) -> Optional[sqlite3.Row]:
+    return connection.execute(
+        """
+        SELECT id, title, description, category, color, created_at
+        FROM habits
+        WHERE id = ? AND user_id = ?
+        """,
+        (habit_id, user_id),
+    ).fetchone()
 
 
 @app.get("/")
@@ -388,6 +442,37 @@ def create_habit(
         return {"habit": build_habit_response(connection, habit)}
 
 
+@app.put("/api/habits/{habit_id}")
+def update_habit(
+    habit_id: int,
+    payload: HabitPayload,
+    current_user: sqlite3.Row = Depends(get_current_user),
+) -> dict:
+    with get_db() as connection:
+        habit = get_habit_for_user(connection, habit_id, current_user["id"])
+        if not habit:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Habit not found.")
+
+        connection.execute(
+            """
+            UPDATE habits
+            SET title = ?, description = ?, category = ?, color = ?
+            WHERE id = ? AND user_id = ?
+            """,
+            (
+                payload.title.strip(),
+                payload.description.strip(),
+                payload.category.strip(),
+                payload.color.strip(),
+                habit_id,
+                current_user["id"],
+            ),
+        )
+
+        updated_habit = get_habit_for_user(connection, habit_id, current_user["id"])
+        return {"habit": build_habit_response(connection, updated_habit)}
+
+
 @app.patch("/api/habits/{habit_id}/toggle")
 def toggle_habit(
     habit_id: int,
@@ -397,14 +482,7 @@ def toggle_habit(
     now = get_now().isoformat()
 
     with get_db() as connection:
-        habit = connection.execute(
-            """
-            SELECT id, title, description, category, color, created_at
-            FROM habits
-            WHERE id = ? AND user_id = ?
-            """,
-            (habit_id, current_user["id"]),
-        ).fetchone()
+        habit = get_habit_for_user(connection, habit_id, current_user["id"])
 
         if not habit:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Habit not found.")
@@ -458,4 +536,3 @@ def delete_habit(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Habit not found.")
 
     return {"message": "Habit deleted successfully."}
-

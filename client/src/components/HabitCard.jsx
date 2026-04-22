@@ -6,7 +6,7 @@ function formatLastCompleted(lastCompletedAt) {
   return `Last check: ${lastCompletedAt}`;
 }
 
-export default function HabitCard({ habit, onToggle, onDelete, isWorking }) {
+export default function HabitCard({ habit, onToggle, onEdit, onDelete, isWorking }) {
   const progressWidth = Math.min(habit.streakCount * 12, 100);
 
   return (
@@ -58,6 +58,14 @@ export default function HabitCard({ habit, onToggle, onDelete, isWorking }) {
           </button>
           <button
             type="button"
+            className="ghost-button"
+            onClick={() => onEdit(habit)}
+            disabled={isWorking}
+          >
+            Edit
+          </button>
+          <button
+            type="button"
             className="ghost-button danger"
             onClick={() => onDelete(habit._id)}
             disabled={isWorking}
@@ -69,4 +77,3 @@ export default function HabitCard({ habit, onToggle, onDelete, isWorking }) {
     </article>
   );
 }
-

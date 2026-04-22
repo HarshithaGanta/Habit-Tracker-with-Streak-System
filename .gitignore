@@ -6,3 +6,6 @@ npm-debug.log*
 __pycache__
 *.pyc
 server/data/*.db
+*.log
+*.out
+*.err
